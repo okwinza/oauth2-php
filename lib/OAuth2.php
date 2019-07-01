@@ -2,9 +2,12 @@
 
 namespace OAuth2;
 
+use OAuth2\Event\PreGrantAccessTokenEvent;
 use OAuth2\Model\IOAuth2AccessToken;
 use OAuth2\Model\IOAuth2AuthCode;
 use OAuth2\Model\IOAuth2Client;
+use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -76,6 +79,11 @@ class OAuth2 implements IOAuth2
      * @var IOAuth2AuthCode
      */
     protected $usedAuthCode = null;
+
+    /**
+     * @var EventDispatcherInterface|null
+     */
+    protected $eventDispatcher = null;
 
     /**
      * Default access token lifetime.
@@ -395,8 +403,9 @@ class OAuth2 implements IOAuth2
      *
      * @param IOAuth2Storage $storage
      * @param array          $config An associative array as below of config options. See CONFIG_* constants.
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(IOAuth2Storage $storage, $config = array())
+    public function __construct(IOAuth2Storage $storage, $config = array(), ?EventDispatcherInterface $eventDispatcher = null)
     {
         $this->storage = $storage;
 
@@ -405,6 +414,8 @@ class OAuth2 implements IOAuth2
         foreach ($config as $name => $value) {
             $this->setVariable($name, $value);
         }
+
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -787,6 +798,9 @@ class OAuth2 implements IOAuth2
             }
             $scope = $input["scope"];
         }
+
+        $event = new PreGrantAccessTokenEvent($request, $stored['data'], $input, $client);
+        $this->dispatchEvent(OAuth2Events::PRE_GRANT_ACCESS_TOKEN, $event);
 
         $token = $this->createAccessToken($client, $stored['data'], $scope, $stored['access_token_lifetime'], $stored['issue_refresh_token'], $stored['refresh_token_lifetime']);
         return new Response(json_encode($token), 200, $this->getJsonHeaders());
@@ -1442,5 +1456,14 @@ class OAuth2 implements IOAuth2
         }
 
         return false;
+    }
+
+    protected function dispatchEvent(string $eventName, Event $event)
+    {
+        if (!$this->eventDispatcher instanceof EventDispatcherInterface) {
+            return;
+        }
+
+        $this->eventDispatcher->dispatch($eventName, $event);
     }
 }
