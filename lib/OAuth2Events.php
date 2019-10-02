@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace OAuth2;
 
-namespace OAuth2;
-
 use OAuth2\Event\PreGrantAccessTokenEvent;
 
 class OAuth2Events
