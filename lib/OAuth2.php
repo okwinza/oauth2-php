@@ -415,7 +415,7 @@ class OAuth2
             $this->setVariable($name, $value);
         }
 
-        $this->eventDispatcher = $eventDispatcher;
+        $this->eventDispatcher = LegacyEventDispatcherProxy::decorate($eventDispatcher);
     }
 
     /**
