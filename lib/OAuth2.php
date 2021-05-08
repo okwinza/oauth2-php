@@ -6,9 +6,8 @@ use OAuth2\Event\PreGrantAccessTokenEvent;
 use OAuth2\Model\IOAuth2AccessToken;
 use OAuth2\Model\IOAuth2AuthCode;
 use OAuth2\Model\IOAuth2Client;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\LegacyEventDispatcherProxy;
+use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -404,7 +403,7 @@ class OAuth2 implements IOAuth2
      *
      * @param IOAuth2Storage $storage
      * @param array          $config An associative array as below of config options. See CONFIG_* constants.
-     * @param EventDispatcherInterface $eventDispatcher
+     * @param EventDispatcherInterface|null $eventDispatcher
      */
     public function __construct(IOAuth2Storage $storage, $config = array(), ?EventDispatcherInterface $eventDispatcher = null)
     {
@@ -416,7 +415,7 @@ class OAuth2 implements IOAuth2
             $this->setVariable($name, $value);
         }
 
-        $this->eventDispatcher = LegacyEventDispatcherProxy::decorate($eventDispatcher);
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -1465,6 +1464,6 @@ class OAuth2 implements IOAuth2
             return;
         }
 
-        $this->eventDispatcher->dispatch($eventName, $event);
+        $this->eventDispatcher->dispatch($event, $eventName);
     }
 }

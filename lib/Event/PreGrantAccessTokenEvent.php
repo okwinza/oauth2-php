@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace OAuth2\Event;
 
 use OAuth2\Model\IOAuth2Client;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use OAuth2\Model\OAuth2Client;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Pre grant acess token event data
